@@ -8,6 +8,20 @@ library(dplyr)
 IP <- "localhost"
 
 ui <- navbarPage("TextminR",
+                 tabPanel("Startseite",
+                          fluidRow(
+                            column(12,div(style="text-align: center;",
+                                          h2("TextminR"), 
+                                          h3("Was bieten wir?"), 
+                                          p("Unser Ziel ist die Entwicklung einer skalierbaren Modellversion, die sowohl literarische Werke als auch Newsartikel analysiert. Vortrainierte Modelle und gründliche Datenprüfungen ermöglichen praxisnahe Unterrichtsanwendungen ohne aufwändige Live-Berechnungen. Beispielaufgaben und Anleitungen für SchülerInnen und Lehrkräfte erleichtern den Einstieg in die Nutzung."))),
+                            fluidRow(
+                              column(3, img(src = "images/BMBWFLogoTransparent.png", height = "92px", width = "276px")),
+                              column(3, img(src = "images/TextminRLogoTransparent.png", height = "92px", width = "276px")),
+                              column(3, img(src = "images/tgmLogoTransparent.png", height = "92px", width = "276px")),
+                              column(3, img(src = "images/TVLogoTransparent.png", height = "92px", width = "276px"))
+                            )
+                          ),
+                          ),
                  tabPanel("Themenrelevanz in der Literatur",
                           sidebarLayout(
                             sidebarPanel(
@@ -217,9 +231,6 @@ server <- function(input, output, session){
           })
         )
     }
-    
-    print(series_list)
-    
     return(hc)
   })
   
