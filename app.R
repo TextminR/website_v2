@@ -179,7 +179,6 @@ server <- function(input, output, session){
     
     df$date <- as.POSIXct(df$date, origin = "1970-01-01", tz = "UTC")
     
-    # Daten nach Topic gruppieren
     series_list <- split(df, df$topic)
     
     if (length(series_list) == 0) {
@@ -187,7 +186,6 @@ server <- function(input, output, session){
       return(NULL)
     }
     
-    # Highchart-Objekt erstellen und direkt Serien hinzufügen
     hc <- highchart() %>%
       hc_chart(type = "line") %>%
       hc_chart(debug = TRUE) %>%
@@ -203,7 +201,6 @@ server <- function(input, output, session){
       hc_tooltip(shared = TRUE, xDateFormat = "%d.%m.%Y") %>%
       hc_legend(enabled = TRUE)
     
-    # Jede Serie direkt an das Highchart-Objekt anhängen
     for (topic_df in series_list) {
       hc <- hc %>%
         hc_add_series(
@@ -218,7 +215,7 @@ server <- function(input, output, session){
         )
     }
     
-    print(series_list)
+    print(series_list )
     
     return(hc)
   })
