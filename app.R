@@ -574,35 +574,119 @@ server <- function(input, output, session) {
       
       observeEvent(input[[action_link_id]], {
         content_id(documents_id)
+        
+        content_id(documents_id)
+        
+        # Index des angeklickten Dokuments finden
+        index <- which(filtered_documents()$id == documents_id)
+        
+        # Titel aus dem geklickten Dokument holen
+        title <- if (length(index) > 0) filtered_documents()$titel[index] else "Unbekannter Titel"
+        
         IP <- IP
-        url <- sprintf("http://%s:8000/document/content/%s?n=30", IP, documents_id)
+        url <- sprintf("http://%s:8000/document/%s", IP, documents_id)
         
         res <- httr::GET(url)
         
         if (httr::status_code(res) == 200) {
-          documents_data <- httr::content(res, as = "parsed")
+          data <- httr::content(res, as = "text", encoding = "UTF-8")
           
-          df_inhalt <- data.frame(
-            inhalt = documents_data,
-            stringsAsFactors = FALSE
-          )
-          
-          document_content(paste(df_inhalt, collapse = "\n"))
+          if (nzchar(data)) {  # Stellt sicher, dass die Antwort nicht leer ist
+            tryCatch({
+              parsed_data <- fromJSON(data)
+              
+              # Author und Location ins DataFrame
+              content_df <- data.frame(
+                author = parsed_data$author,
+                location = parsed_data$location,
+                stringsAsFactors = FALSE
+              )
+              
+              print(content_df)
+              
+              # Topics ins DataFrame
+              topics_list <- parsed_data$topics
+              
+              # Named list in DataFrame umwandeln
+              topics_df <- data.frame(
+                topic = names(topics_list),
+                probability = unlist(topics_list),
+                stringsAsFactors = FALSE
+              )
+              
+              print(topics_df)
+              
+              # Sentiment ins DataFrame
+              sentiment_df <- data.frame(
+                positiv = parsed_data$sentiment$positiv,
+                neutral = parsed_data$sentiment$neutral,
+                negativ = parsed_data$sentiment$negativ
+              )
+              
+              print(sentiment_df)
+              
+              # Korrekte Speicherung der Ergebnisse
+              document_content(list(
+                title = title,
+                author = content_df,
+                topics = topics_df,
+                sentiment = sentiment_df
+              ))
+              
+              print(document_content())  # <- Klammern hinzugefügt, um den reaktiven Wert zu holen
+              
+            }, error = function(e) {
+              showNotification(paste("Fehler beim Parsen der Daten:", e$message), type = "error")
+            })
+          } else {
+            showNotification("Leere Antwort vom Server!", type = "error")
+          }
         } else {
-          document_content("Fehler beim Laden des Dokuments.")
+          showNotification(paste("Fehler beim Abrufen der Daten: HTTP", httr::status_code(res)), type = "error")
         }
       })
     })
   })
   
+  
   output$document_content <- renderText({
-    if (is.null(document_content())) {
-      return("Noch kein Dokument ausgewählt oder kein Inhalt verfügbar.")
+  if (is.null(document_content())) {
+    return("Noch kein Dokument ausgewählt oder kein Inhalt verfügbar.")
+  } else {
+    content_df <- document_content()$author
+    title <- document_content()$title
+    sentiment <- document_content()$sentiment
+    
+    positive_value <- as.numeric(sentiment$positiv)
+    neutral_value <- as.numeric(sentiment$neutral)
+    negative_value <- as.numeric(sentiment$negativ)
+    
+    print(positive_value)
+    print(neutral_value)
+    print(negative_value)
+    
+    if (any(is.na(c(positive_value, neutral_value, negative_value)))) {
+      sentiment_output <- "Fehler: Ungültige Sentiment-Werte"
     } else {
-      req(document_content())
-      document_content()
+      # Formatierte Ausgabe für Sentiment
+      sentiment_output <- paste(
+        "positiv:", round(positive_value, 2), 
+        ", neutral:", round(neutral_value, 2), 
+        ", negativ:", round(negative_value, 2)
+      )
     }
-  })
+    
+    result <- paste(
+      h2(title), 
+      "\n \nAutor:", content_df$author, 
+      "\nStandort:", content_df$location, 
+      "\n\nSentiment:\n", sentiment_output
+    )
+    
+    return(result)
+  }
+})
+
   
   observeEvent(input$plot_button, {
     showModal(
