@@ -26,7 +26,8 @@ ui <- navbarPage("TextminR",
                  ),
                  tabPanel("Topic Ansicht",
                           mainPanel(
-                            highchartOutput("interTopic")
+                            highchartOutput("interTopic"),
+                            plotOutput("selectedTopic")
                           )
                           ),
                  tabPanel("Themenrelevanz in der Literatur",
@@ -703,35 +704,7 @@ server <- function(input, output, session) {
   output$modal_plot <- renderPlot({
     req(content_id())
     
-    IP <- IP
-    url <- sprintf("http://%s:8000/document/topics/%s", IP, content_id())
-    
-    res <- httr::GET(url)
-    
-    doc_topics <- data.frame(doc_TopicName = character(), doc_TopicWert = numeric())
-    
-    if (httr::status_code(res) == 200) {
-      doc_topics_data <- httr::content(res, as = "text")
-      
-      doc_topics_data <- gsub('\\"', '"', doc_topics_data)
-      
-      doc_topics_data <- jsonlite::fromJSON(doc_topics_data)
-      
-      if (!is.null(doc_topics_data)) {
-        doc_topics <- data.frame(
-          doc_TopicName = names(doc_topics_data),
-          doc_TopicWert = unlist(doc_topics_data, use.names = FALSE),
-          stringsAsFactors = FALSE
-        )
-      } else {
-        showNotification("Keine Daten verfügbar für die Topics des Dokuments.", type = "warning")
-      }
-    } else {
-      showNotification(sprintf("Fehler beim API-Aufruf: HTTP %d", httr::status_code(res)), type = "error")
-      return(NULL)
-    }
-    
-    ggplot(doc_topics, aes(x = doc_TopicWert, y = reorder(doc_TopicName, doc_TopicWert), fill = doc_TopicWert)) +
+    ggplot(document_content()$topics, aes(x = document_content()$topics$probability, y = reorder(document_content()$topics$topic, document_content()$topics$probability), fill = document_content()$topics$probability)) +
       geom_bar(stat = "identity", color = "black") +
       scale_fill_gradient(low = "#03a1fc", high = "#1803fc") +
       labs(
@@ -750,6 +723,8 @@ server <- function(input, output, session) {
       )
   })
   
+  interTopicDF <- reactiveVal(NULL)
+  
   output$interTopic <- renderHighchart({
     url <- sprintf("http://%s:8000/topicplot", IP)
     res <- httr::GET(url)
@@ -759,6 +734,7 @@ server <- function(input, output, session) {
     json_data <- fromJSON(content)
     
     df <- as.data.frame(json_data)
+    interTopicDF(df)
     
     highchart() %>%
       hc_chart(type = "scatter") %>%
@@ -769,8 +745,65 @@ server <- function(input, output, session) {
       hc_yAxis(title = list(text = "Y-Koordinate")) %>%
       hc_title(text = "Topic Streudiagramm") %>%
       hc_tooltip(pointFormat = "Topic: {point.name}") %>%
-      hc_legend(enabled = FALSE)
+      hc_legend(enabled = FALSE) %>%
+      hc_plotOptions(series = list(
+        point = list(
+          events = list(
+            click = JS("
+              function() {
+                Shiny.setInputValue('plot_click', {
+                  name: this.name,
+                  x: this.x,
+                  y: this.y
+                });
+              }
+            ")
+          )
+        )
+      ))
     
+  })
+  
+  
+  observeEvent(input$plot_click, {
+    req(interTopicDF())
+    topic <- input$plot_click$name
+    
+    IP <- "127.0.0.1"  # oder deine gewünschte IP
+    url <- sprintf("http://%s:8000/topics/lda/%d", IP, topic)
+    
+    res <- GET(url)
+    
+    if (status_code(res) == 200) {
+      dependencies_data <- content(res, as = "parsed")
+      dependencies_df <- data.frame(
+        name = names(dependencies_data),
+        wert = unlist(dependencies_data, use.names = FALSE),
+        stringsAsFactors = FALSE
+      )
+      
+      output$selectedTopic <- renderPlot({
+        ggplot(dependencies_df, aes(x = wert, y = reorder(name, wert), fill = wert)) +
+          geom_bar(stat = "identity", color = "black") +
+          scale_fill_gradient(low = "#03a1fc", high = "#1803fc") +
+          labs(
+            title = sprintf("Topic %d: Relevanz der Wörter", topic),
+            x = "Relevanz",
+            y = "Wörter"
+          ) +
+          theme_minimal(base_size = 14) +
+          theme(
+            plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+            axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.position = "none"
+          )
+      })
+    } else {
+      output$selectedTopic <- renderText({
+        paste("Error: Failed to load dependencies for topic number:", topic)
+      })
+    }
   })
 }
 
