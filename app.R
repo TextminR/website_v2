@@ -6,6 +6,7 @@ library(highcharter)
 library(dplyr)
 library(leaflet)
 library(ggplot2)
+library(shinyWidgets)
 
 IP <- "localhost"
 
@@ -15,13 +16,18 @@ ui <- navbarPage("TextminR",
                             column(12,div(style="text-align: center;",
                                           h2("TextminR"), 
                                           h3("Was bieten wir?"), 
-                                          p("Unser Ziel ist die Entwicklung einer skalierbaren Modellversion, die sowohl literarische Werke als auch Newsartikel analysiert. Vortrainierte Modelle und gründliche Datenprüfungen ermöglichen praxisnahe Unterrichtsanwendungen ohne aufwändige Live-Berechnungen. Beispielaufgaben und Anleitungen für SchülerInnen und Lehrkräfte erleichtern den Einstieg in die Nutzung."))),
-                            fluidRow(
-                              column(3, img(src = "images/BMBWFLogoTransparent.png", height = "92px", width = "276px")),
-                              column(3, img(src = "images/TextminRLogoTransparent.png", height = "92px", width = "276px")),
-                              column(3, img(src = "images/tgmLogoTransparent.png", height = "92px", width = "276px")),
-                              column(3, img(src = "images/TVLogoTransparent.png", height = "92px", width = "276px"))
-                            )
+                                          p("Unser Ziel ist die Entwicklung einer skalierbaren Modellversion, die sowohl literarische Werke als auch Newsartikel analysiert. Vortrainierte Modelle und gründliche Datenprüfungen ermöglichen praxisnahe Unterrichtsanwendungen ohne aufwändige Live-Berechnungen. Beispielaufgaben und Anleitungen für SchülerInnen und Lehrkräfte erleichtern den Einstieg in die Nutzung."),
+                                          br(),
+                                          div(style="display: flex; justify-content: center; align-items: center; width: 100%;", 
+                                              switchInput("switch_button", "Aktiviere Funktion", value = FALSE, onLabel = "Literarische Daten", offLabel = "News-Media Daten")))),
+                                          fluidRow(
+                                            column(12, 
+                                                   div(style="display: flex; justify-content: space-between; align-items: center; background-color: #f1f1f1; padding: 10px; width: 100%;",
+                                                       h4("Titel der Leiste"),  
+                                                       actionButton("popup_button", label = " ", icon = icon("arrow-right"), style = "background-color: transparent; border: none;")  # Der Pfeil auf der rechten Seite
+                                                   )
+                                            )
+                                          ),
                           ),
                  ),
                  tabPanel("Topic Ansicht",
@@ -120,6 +126,17 @@ server <- function(input, output, session) {
   selected_topics2 <- reactiveVal(integer())
   plot_data <- reactiveVal(NULL)
   plot_data2 <- reactiveVal(NULL)
+  
+  observeEvent(input$popup_button, {
+    showModal(modalDialog(
+      title= "Text Anzeige",
+      p("Text 123"),
+      easyClose = TRUE,
+      footer = tagList(
+        modalButton("Schließen")
+      )
+    ))
+  })
   
   # API-Aufruf für erstes Tab
   observeEvent(input$search_btn, {
