@@ -274,9 +274,11 @@ server <- function(input, output, session) {
   observeEvent(input$plot_btn, {
     req(length(selected_topics()) > 0)
     
-    startdate <- input$year_range[1]
-    enddate <- input$year_range[2]
+    startdate <- as.Date(paste0(input$year_range[1], "-01-01"))
+    enddate <- as.Date(paste0(input$year_range[2], "-01-01"))
     absolute <- !input$absolute_relative
+    print(startdate)
+    print(enddate)
     
     query_params <- list(
       startdate = startdate,
