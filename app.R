@@ -142,7 +142,7 @@ server <- function(input, output, session) {
   observeEvent(input$search_btn, {
     req(input$search_word)
     
-    url <- sprintf("http://%s:8000/topicForWord/lda?word=%s", IP, URLencode(input$search_word))
+    url <- sprintf("http://%s:8000/topicmodels/word?model=lda&word=%s", IP, URLencode(input$search_word))
     res <- httr::GET(url)
     
     if (httr::status_code(res) == 200) {
@@ -167,7 +167,7 @@ server <- function(input, output, session) {
     
     previous_selection <- selected_topics2()
     
-    url <- sprintf("http://%s:8000/topicForWord/lda?word=%s", IP, URLencode(input$search_word2))
+    url <- sprintf("http://%s:8000/topicmodels/word?model=lda&word=%s", IP, URLencode(input$search_word2))
     res <- httr::GET(url)
     
     if (httr::status_code(res) == 200) {
@@ -352,7 +352,6 @@ server <- function(input, output, session) {
     
     startdate <- as.Date(paste0(input$year_range2[1], "-01-01"))
     enddate <- as.Date(paste0(input$year_range2[2], "-01-01"))
-    print(startdate)
     
     
     res <- httr::GET(
@@ -604,7 +603,7 @@ server <- function(input, output, session) {
         title <- if (length(index) > 0) filtered_documents()$titel[index] else "Unbekannter Titel"
         
         IP <- IP
-        url <- sprintf("http://%s:8000/document/%s", IP, documents_id)
+        url <- sprintf("http://%s:8000/documents/info/%s", IP, documents_id)
         
         res <- httr::GET(url)
         
@@ -745,7 +744,7 @@ server <- function(input, output, session) {
   interTopicDF <- reactiveVal(NULL)
   
   output$interTopic <- renderHighchart({
-    url <- sprintf("http://%s:8000/topicplot", IP)
+    url <- sprintf("http://%s:8000/topicmodels/plot", IP)
     res <- httr::GET(url)
     
     
@@ -789,7 +788,7 @@ server <- function(input, output, session) {
     topic <- input$plot_click$name
     
     IP <- "127.0.0.1"  # oder deine gewünschte IP
-    url <- sprintf("http://%s:8000/topics/lda/%d", IP, topic)
+    url <- sprintf("http://%s:8000/topicmodels/topics/%d?model=lda", IP, topic)
     
     res <- GET(url)
     
