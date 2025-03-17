@@ -291,7 +291,7 @@ server <- function(input, output, session) {
     }
     
     res <- httr::GET(
-      url = sprintf("http://%s:8000/wordfrequency", IP),
+      url = sprintf("http://%s:8000/topicmodels/frequency", IP),
       query = query_params
     )
     
@@ -382,7 +382,10 @@ server <- function(input, output, session) {
         return()
       }
       
-      print(data)
+      print(names(data))
+      print(class(data))
+      print(length(data))
+      
       
       safe_topics <- lapply(data$topics, function(x) {
         if (is.null(x) || length(x) == 0) return(NA) # Leere Topics mit NA füllen
@@ -391,13 +394,17 @@ server <- function(input, output, session) {
       
       data_df <- data.frame(
         title = data$title,
-        longitude = data$longitude,
         latitude = data$latitude,
+        longitude = data$longitude,
+        location = data$location,
         sentiment = data$sentiment,
+        accuracy = data$topic_accuracy,
         id = data$id,
+        probability_positive = data$probabilities.positive,
+        probability_neutral = data$probabilities.neutral,
+        probability_negative = data$probabilities.negative,
         stringsAsFactors = FALSE
       )
-      
       print(data_df)
       
       plot_data2(data_df)
@@ -408,15 +415,28 @@ server <- function(input, output, session) {
     output$heatmap <- renderLeaflet({
       df <- plot_data2()
       
+      df$max_probability <- apply(df[, c("probability_positive", "probability_neutral", "probability_negative")], 1, max)
       
-      df$color <- ifelse(df$sentiment > 0.5, "green",
-                         ifelse(df$sentiment < 0.5, "red", "gray"))
+      df$max_category <- apply(df[, c("probability_positive", "probability_neutral", "probability_negative")], 1, function(row) {
+        names(row)[which.max(row)]
+      })
+      
+      print(df$max_probability)
+      print(df$max_category)
+      
+      df$color <- ifelse(df$max_category == "probability_positive", 
+                         ifelse(df$max_probability < 0.75, "#90EE90", "#006400"),
+                         ifelse(df$max_category == "probability_negative", 
+                                ifelse(df$max_probability < 0.75, "#ffcccb", "#8B0000"),
+                                "#808080"))
       
       icons <- awesomeIcons(
         icon = 'info-sign',
         iconColor = 'white',
         markerColor = df$color
       )
+      
+      print(df$color)
       
       leaflet(df) %>%
         addTiles() %>%  
@@ -510,7 +530,7 @@ server <- function(input, output, session) {
           }),
           lineWidth = 3,
           marker = list(
-            enabled = FALSE  # Keine Marker für die Spline-Linie
+            enabled = FALSE
           ),
           enableMouseTracking = FALSE
         )
