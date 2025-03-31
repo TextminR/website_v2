@@ -424,10 +424,8 @@ server <- function(input, output, session) {
       print(df$max_probability)
       print(df$max_category)
       
-      df$color <- ifelse(df$max_category == "probability_positive", 
-                         ifelse(df$max_probability < 0.75, "#90EE90", "#006400"),
-                         ifelse(df$max_category == "probability_negative", 
-                                ifelse(df$max_probability < 0.75, "#ffcccb", "#8B0000"),
+      df$color <- ifelse(df$max_category == "probability_positive", ifelse(df$max_probability < 0.75, "#90EE90", "#006400"),
+                         ifelse(df$max_category == "probability_negative", ifelse(df$max_probability < 0.75, "#ffcccb", "#8B0000"),
                                 "#808080"))
       
       icons <- awesomeIcons(
@@ -440,7 +438,7 @@ server <- function(input, output, session) {
       
       leaflet(df) %>%
         addTiles() %>%  
-        addAwesomeMarkers(~longitude, ~latitude,icon = icons, popup = ~paste(title, "<br>Wert:", sentiment))%>%
+        addAwesomeMarkers(~longitude, ~latitude,icon = icons, popup = ~paste(title, "<br>Wert:", df$max_probability))%>%
         addProviderTiles(
           "OpenStreetMap",
           group = "OpenStreetMap"
