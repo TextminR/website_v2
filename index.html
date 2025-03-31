@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landingpage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#25274D',  
+                        secondary: '#29648A' 
+                    }
+                }
+            }
+        };
+
+        // Funktion für den sanften Scroll-Effekt
+        function smoothScroll(targetId) {
+            const targetElement = document.getElementById(targetId);
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+    <!-- Header mit Hintergrundfarbe "primary" und weißer Schrift -->
+    <header class="bg-primary shadow-md py-4 text-white">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <img src="TextminRLogoTransparent.png" alt="Website Logo" class="h-10">
+            <nav>
+                <ul class="flex space-x-6">
+                    <li><a href="#hero" class="hover:text-secondary transition duration-300">Home</a></li>
+                    <li><a href="#video-section" class="hover:text-secondary transition duration-300">Funktionen</a></li>
+                    <li><a href="#footer" class="hover:text-secondary transition duration-300">Kontakt</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Deckblatt Bereich -->
+    <section id="hero" class="h-screen flex flex-col items-center justify-center bg-primary text-white text-center pt-24 relative">
+        <div class="max-w-4xl mx-auto px-6">
+            <h1 class="text-5xl font-bold mb-4">Willkommen bei TextminR</h1>
+            <p class="text-lg mb-6">Die Software für den Sprachunterricht, welche es ermöglicht eine Vielzahl an literarischen Texten und Medien auf Trends und Themen zu analysieren.</p>
+            <img src="TextminRLogoTransparent.png" alt="Website Logo" class="mx-auto mb-6 h-32">
+            <a href="shinyApp.html" class="mt-8 inline-block bg-secondary text-white px-8 py-4 rounded-lg shadow-md hover:bg-indigo-600 transition duration-300">Jetzt starten</a>
+        </div>
+        <!-- Scroll-Indikator (Pfeil nach unten) -->
+        <div class="absolute bottom-10 w-full flex justify-center">
+            <a href="javascript:void(0)" onclick="smoothScroll('video-section')" class="text-white text-4xl animate-bounce">↓</a>
+        </div>
+    </section>
+
+    <!-- Video Bereich -->
+    <section id="video-section" class="container mx-auto px-6 py-12 flex flex-col lg:flex-row items-center">
+        <!-- Text links vom Video -->
+        <div class="lg:w-1/2 text-center lg:text-left lg:pr-12 mb-6 lg:mb-0">
+            <h2 class="text-3xl font-bold text-secondary mb-4">Erfahre mehr über die Funktionen</h2>
+            <p class="text-lg text-gray-700">Mit TextminR können Sie literarische Werke und aktuelle Medien effizient auf relevante Trends und Themen untersuchen. Entdecken Sie die Leistungsfähigkeit unserer Software und erfahren Sie, wie Sie Ihre Analyse auf das nächste Level bringen können.</p>
+        </div>
+
+        <!-- Video rechts vom Text -->
+        <div class="lg:w-1/2">
+            <video class="rounded-lg shadow-md w-full max-w-2xl mx-auto" controls>
+                <source src="video.mp4" type="video/mp4">
+                Dein Browser unterstützt kein Video-Tag.
+            </video>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="footer" class="bg-white py-6 text-center text-gray-600 mt-auto">
+        <p>© 2025 TextminR. Alle Rechte vorbehalten.</p>
+    </footer>
+
+</body>
+</html>

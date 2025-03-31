@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shiny App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#25274D',
+                        secondary: '#29648A'
+                    }
+                }
+            }
+        };
+
+        function toggleFullscreen() {
+            const container = document.getElementById("iframeContainer");
+            const iframe = document.getElementById("shinyFrame");
+            const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+            if (!document.fullscreenElement) {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.mozRequestFullScreen) { 
+                    container.mozRequestFullScreen();
+                } else if (container.webkitRequestFullscreen) { 
+                    container.webkitRequestFullscreen();
+                } else if (container.msRequestFullscreen) { 
+                    container.msRequestFullscreen();
+                }
+
+                // Größe des iframes im Vollbildmodus anpassen
+                iframe.classList.add("fullscreen-iframe");
+                fullscreenBtn.innerHTML = "⛶";
+                fullscreenBtn.classList.add("fullscreen-active");
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+
+                // Zurücksetzen, wenn der Vollbildmodus verlassen wird
+                iframe.classList.remove("fullscreen-iframe");
+                fullscreenBtn.innerHTML = "⛶";
+                fullscreenBtn.classList.remove("fullscreen-active");
+            }
+        }
+
+        document.addEventListener("fullscreenchange", () => {
+            const fullscreenBtn = document.getElementById("fullscreenBtn");
+            const iframe = document.getElementById("shinyFrame");
+
+            if (!document.fullscreenElement) {
+                fullscreenBtn.innerHTML = "⛶";
+                fullscreenBtn.classList.remove("fullscreen-active");
+                iframe.classList.remove("fullscreen-iframe");
+            }
+        });
+    </script>
+    <style>
+        .fullscreen-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+            z-index: 10;
+        }
+        .fullscreen-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+        .fullscreen-active {
+            position: fixed !important;
+            bottom: 20px;
+            right: 20px;
+            font-size: 20px;
+            padding: 12px 16px;
+        }
+
+        .iframe-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            max-width: 800px;
+        }
+        iframe {
+            display: block;
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .fullscreen-iframe {
+            width: 100vw !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+    <!-- Header -->
+    <header class="bg-primary shadow-md py-4 text-white">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <a href="index.html">
+                <img src="TextminRLogoTransparent.png" alt="Website Logo" class="h-10">
+            </a>
+            <nav>
+                <ul class="flex space-x-6">
+                    <li><a href="index.html" class="hover:text-secondary transition duration-300">Home</a></li>
+                    <li><a href="#shiny-app" class="hover:text-secondary transition duration-300">Shiny App</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Shiny App Einbindung -->
+    <section id="shiny-app" class="container mx-auto px-6 py-12 text-center">
+        <h1 class="text-4xl font-bold text-primary mb-6">Interaktive Shiny App</h1>
+        <p class="text-lg text-gray-700 mb-6">Hier kannst du unsere R Shiny App direkt in deinem Browser ausprobieren.</p>
+        
+        <div id="iframeContainer" class="iframe-container mx-auto">
+            <iframe id="shinyFrame" src="http://127.0.0.1:5538"></iframe>
+            <button id="fullscreenBtn" class="fullscreen-btn" onclick="toggleFullscreen()">⛶</button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white py-6 text-center text-gray-600 mt-auto">
+        <p>© 2025 TextminR. Alle Rechte vorbehalten.</p>
+    </footer>
+
+</body>
+</html>
