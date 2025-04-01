@@ -24,7 +24,7 @@ ui <- navbarPage("TextminR",
                                             column(12, 
                                                    div(style="display: flex; justify-content: space-between; align-items: center; background-color: #f1f1f1; padding: 10px; width: 100%;",
                                                        h4("Titel der Leiste"),  
-                                                       actionButton("popup_button", label = " ", icon = icon("arrow-right"), style = "background-color: transparent; border: none;")  # Der Pfeil auf der rechten Seite
+                                                       actionButton("popup_button", label = " ", icon = icon("arrow-right"), style = "background-color: transparent; border: none;")  
                                                    )
                                             )
                                           ),
@@ -32,6 +32,17 @@ ui <- navbarPage("TextminR",
                  ),
                  tabPanel("Topic Ansicht",
                           mainPanel(
+                            fluidRow(
+                              column(12, 
+                                div(style = "display: flex; align-items: center; gap: 10px; padding-bottom: 10px;",
+                                  h3("Topic Streudiagramm", style = "margin-bottom: 0; line-height: 1.2;"),
+                                  div(style = "display: flex; align-items: center;",
+                                    actionButton("info_button_streudiagramm", label = NULL, icon = icon("info-circle"), class = "btn btn-info", 
+                                                 style = "height: 32px; padding: 3px 12px; display: flex; align-items: center")
+                                  )
+                                )
+                              )
+                            ),
                             highchartOutput("interTopic"),
                             plotOutput("selectedTopic")
                           )
@@ -40,13 +51,29 @@ ui <- navbarPage("TextminR",
                           sidebarLayout(
                             sidebarPanel(
                               useShinyjs(),
-                              textInput("search_word", "Gib ein Wort ein:", ""),
-                              actionButton("search_btn", "Suchen"),
-                              "Wähle 1-4 Topics aus",
+                              fluidRow(
+                                column(12, 
+                                       div(style="display: flex; gap: 15px;",
+                                           h3("Themenrelevanz", style="margin-top: 0px;"), 
+                                           actionButton("info_button_themenrelevanz", label = NULL, icon = icon("info-circle"), class = "btn btn-info", 
+                                                        style = "height: 32px; padding: 3px 12px; display: flex; align-items: center")
+                                       )
+                                )
+                              ),
+                              textInput("search_word", "Gib Sie ein Wort ein und wählen 1-4 Topics aus:", ""),
+                              actionButton("search_btn", "Suchen", 
+                                           style = "margin-bottom: 10px;
+                                           padding: 5px 15px; background-color: #007BFF; color: white;
+                                           border: none; border-radius: 5px; cursor: pointer; display: block;
+                                           width: 100%; font-size: 14px;"),
                               div(
                                 style = "overflow-y: scroll; max-height: 300px;",
                                 uiOutput("topicsList")),
-                              actionButton("reset_btn", "Auswahl zurücksetzen"),
+                              actionButton("reset_btn", "Auswahl zurücksetzen", 
+                                           style = "margin-bottom: 10px;
+                                           padding: 5px 15px; background-color: #007BFF; color: white;
+                                           border: none; border-radius: 5px; cursor: pointer; display: block;
+                                           width: 100%; font-size: 14px;"),
                               div(sliderInput("year_range",
                                               "Wähle eine Zeitspanne:",
                                               min = 1600, 
@@ -57,7 +84,11 @@ ui <- navbarPage("TextminR",
                                   checkboxInput("absolute_relative",
                                                 "Relative Zahlen verwenden",
                                                 value = FALSE)),
-                              actionButton("plot_btn", "Plotte")
+                              actionButton("plot_btn", "Plotte",
+                                           style = "margin-bottom: 10px;
+                                           padding: 5px 15px; background-color: #007BFF; color: white;
+                                           border: none; border-radius: 5px; cursor: pointer; display: block;
+                                           width: 100%; font-size: 14px;")
                             ),
                             mainPanel(
                               highchartOutput("plot")
@@ -68,13 +99,30 @@ ui <- navbarPage("TextminR",
                           sidebarLayout(
                             sidebarPanel(
                               useShinyjs(),
+                              fluidRow(
+                                column(12, 
+                                  div(style="display: flex; gap: 15px;",
+                                    h3("Heatmap", style="margin-top: 0px;"), 
+                                    actionButton("info_button_heatmap", label = NULL, icon = icon("info-circle"), class = "btn btn-info", 
+                                                  style = "height: 32px; padding: 3px 12px; display: flex; align-items: center")
+                                  )
+                                )
+                              ),
                               textInput("search_word2", "Gib ein Wort ein:", ""),
-                              actionButton("search_btn2", "Suchen"),
+                              actionButton("search_btn2", "Suchen",
+                                           style = "margin-bottom: 10px;
+                                           padding: 5px 15px; background-color: #007BFF; color: white;
+                                           border: none; border-radius: 5px; cursor: pointer; display: block;
+                                           width: 100%; font-size: 14px;"),
                               "Wähle maximal 1 Topic aus",
                               div(
                                 style = "overflow-y: scroll; max-height: 300px;",
                                 uiOutput("topicsList2")),
-                              actionButton("reset_btn2", "Auswahl zurücksetzen"),
+                              actionButton("reset_btn2", "Auswahl zurücksetzen",
+                                           style = "margin-bottom: 10px;
+                                           padding: 5px 15px; background-color: #007BFF; color: white;
+                                           border: none; border-radius: 5px; cursor: pointer; display: block;
+                                           width: 100%; font-size: 14px;"),
                               div(sliderInput("year_range2",
                                               "Wähle eine Zeitspanne:",
                                               min = 1600, 
@@ -82,7 +130,11 @@ ui <- navbarPage("TextminR",
                                               value = c(1800, 1920),
                                               step = 1,
                                               sep = "")),
-                              actionButton("plot_btn2", "Plotte")
+                              actionButton("plot_btn2", "Plotte",
+                                           style = "margin-bottom: 10px;
+                                           padding: 5px 15px; background-color: #007BFF; color: white;
+                                           border: none; border-radius: 5px; cursor: pointer; display: block;
+                                           width: 100%; font-size: 14px;")
                             ),
                             mainPanel(
                               leafletOutput("heatmap")
@@ -92,6 +144,15 @@ ui <- navbarPage("TextminR",
                  tabPanel("Specific Document",
                           sidebarLayout(
                             sidebarPanel(
+                              fluidRow(
+                                column(12, 
+                                  div(style="display: flex; gap: 15px;",
+                                   h3("Spezifisches Dokument", style="margin-top: 0px;"), 
+                                   actionButton("info_button_document", label = NULL, icon = icon("info-circle"), class = "btn btn-info", 
+                                                style = "height: 32px; padding: 3px 12px; display: flex; align-items: center")
+                                   )
+                                )
+                              ),
                               div(
                                 class="custom_sidebar",
                                 textInput("such_string", "Suchfeld", placeholder = "Suchen Sie ein Werk")
@@ -779,7 +840,6 @@ server <- function(input, output, session) {
                     dataLabels = list(enabled = TRUE, format = "{point.name}", showInLegend = FALSE)) %>%
       hc_xAxis(title = list(text = "X-Koordinate")) %>%
       hc_yAxis(title = list(text = "Y-Koordinate")) %>%
-      hc_title(text = "Topic Streudiagramm") %>%
       hc_tooltip(pointFormat = "Topic: {point.name}") %>%
       hc_legend(enabled = FALSE) %>%
       hc_plotOptions(series = list(
@@ -797,9 +857,47 @@ server <- function(input, output, session) {
           )
         )
       ))
-    
   })
   
+  observeEvent(input$info_button_streudiagramm, {
+    showModal(modalDialog(
+      title = "Information zum Streudiagramm",
+      "Dieses Streudiagramm zeigt die verschiedenen Topics als Punkte in einem zweidimensionalen Raum. 
+      Die Größe der Blasen repräsentiert die relative Bedeutung eines Topics. \n Klicken Sie auf ein Topic, um die relevantesten Wörter anzuzeigen.",
+      easyClose = TRUE,
+      footer = modalButton("Schließen")
+    ))
+  })
+  
+  observeEvent(input$info_button_themenrelevanz, {
+    showModal(modalDialog(
+      title = "Information zum Streudiagramm",
+      "Dieses Streudiagramm zeigt die verschiedenen Topics als Punkte in einem zweidimensionalen Raum. 
+      Die Größe der Blasen repräsentiert die relative Bedeutung eines Topics. \n Klicken Sie auf ein Topic, um die relevantesten Wörter anzuzeigen.",
+      easyClose = TRUE,
+      footer = modalButton("Schließen")
+    ))
+  })
+  
+  observeEvent(input$info_button_heatmap, {
+    showModal(modalDialog(
+      title = "Information zum Streudiagramm",
+      "Dieses Streudiagramm zeigt die verschiedenen Topics als Punkte in einem zweidimensionalen Raum. 
+      Die Größe der Blasen repräsentiert die relative Bedeutung eines Topics. \n Klicken Sie auf ein Topic, um die relevantesten Wörter anzuzeigen.",
+      easyClose = TRUE,
+      footer = modalButton("Schließen")
+    ))
+  })
+  
+  observeEvent(input$info_button_document, {
+    showModal(modalDialog(
+      title = "Information zum Streudiagramm",
+      "Dieses Streudiagramm zeigt die verschiedenen Topics als Punkte in einem zweidimensionalen Raum. 
+      Die Größe der Blasen repräsentiert die relative Bedeutung eines Topics. \n Klicken Sie auf ein Topic, um die relevantesten Wörter anzuzeigen.",
+      easyClose = TRUE,
+      footer = modalButton("Schließen")
+    ))
+  })
   
   observeEvent(input$plot_click, {
     req(interTopicDF())
