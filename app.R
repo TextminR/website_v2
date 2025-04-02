@@ -7,10 +7,11 @@ library(dplyr)
 library(leaflet)
 library(ggplot2)
 library(shinyWidgets)
+library(plotly)
 
 IP <- "localhost"
 
-ui <- navbarPage("TextminR",
+ui <- navbarPage("TextminR", id= "main_tabs",
                  tabPanel("Startseite",
                           fluidRow(
                             column(12,div(style="text-align: center;",
@@ -160,21 +161,13 @@ ui <- navbarPage("TextminR",
                               div(
                                 style = "overflow-y: scroll; max-height: 400px;",
                                 uiOutput("documents_list"),
-                                div(
-                                  style = "position: absolute; bottom: -10px; left: 10px; width: calc(100% - 20px);",
-                                  actionButton(
-                                    inputId = "plot_button",
-                                    label = "Topics anzeigen",
-                                    style = "margin-bottom: 10px;
-                                    padding: 5px 15px; background-color: #007BFF; color: white;
-                                    border: none; border-radius: 5px; cursor: pointer; display: block;
-                                    width: 100%; font-size: 14px;"
-                                  )
-                                )
+                                
                               )
                             ),
                             mainPanel(
-                              verbatimTextOutput("document_content")
+                              verbatimTextOutput("document_content"),
+                              plotlyOutput("piePlot"),
+                              plotlyOutput("document_plot")
                             )
                           )
                  )
@@ -774,50 +767,88 @@ server <- function(input, output, session) {
       )
     }
     
+    
     result <- paste(
       h2(title), 
       "\n \nAutor:", content_df$author, 
-      "\nStandort:", content_df$location, 
-      "\n\nSentiment:\n", sentiment_output
+      "\nStandort:", content_df$location
     )
     
     return(result)
-  }
-})
-
-  
-  observeEvent(input$plot_button, {
-    showModal(
-      modalDialog(
-        title = "Topics",
-        plotOutput("modal_plot"),
-        size = "l",
-        easyClose = TRUE,
-        footer = modalButton("Schließen")
-      )
-    )
+    }
   })
   
-  output$modal_plot <- renderPlot({
+  output$piePlot <- renderPlotly({
+    
+    sentiment <- document_content()$sentiment
+    if (is.null(sentiment)) return(NULL)
+    
+    positive_value <- ifelse(is.null(sentiment$positiv) | is.na(sentiment$positiv), 0, as.numeric(sentiment$positiv))
+    neutral_value <- ifelse(is.null(sentiment$neutral) | is.na(sentiment$neutral), 0, as.numeric(sentiment$neutral))
+    negative_value <- ifelse(is.null(sentiment$negativ) | is.na(sentiment$negativ), 0, as.numeric(sentiment$negativ))
+    
+    df <- data.frame(
+      Kategorie = c("Positiv", "Neutral", "Negativ"),
+      Wert = c(positive_value, neutral_value, negative_value)
+    )
+    
+    # Wenn alle Werte 0 oder NA sind, stoppe
+    if (sum(df$Wert, na.rm = TRUE) == 0) return(NULL)
+    
+    colors <- c("Positiv" = "green", "Neutral" = "gray", "Negativ" = "red")
+    
+    # Erstellen des Kuchendiagramms mit Plotly
+    plot_ly(df, labels = ~Kategorie, values = ~Wert, type = 'pie',
+            marker = list(colors = colors[df$Kategorie])) %>%
+      layout(title = "Sentimentanalyse")
+  })
+
+  
+  output$document_plot <- renderPlotly({
     req(content_id())
     
-    ggplot(document_content()$topics, aes(x = document_content()$topics$probability, y = reorder(document_content()$topics$topic, document_content()$topics$probability), fill = document_content()$topics$probability)) +
-      geom_bar(stat = "identity", color = "black") +
-      scale_fill_gradient(low = "#03a1fc", high = "#1803fc") +
-      labs(
-        title = sprintf("Topics des ausgewählten Werkes"),
-        x = "",
-        y = ""
-      ) +
-      theme_minimal(base_size = 14) +
-      theme(
-        plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
-        axis.title.x = element_text(margin = margin(t = 10)),
-        axis.title.y = element_text(margin = margin(r = 10)),
-        axis.text.y = element_text(size = 12),
-        axis.text.x = element_text(size = 12),
-        legend.position = "none"
+    p <- plot_ly(
+      data = document_content()$topics,
+      x = document_content()$topics$probability,
+      y = ~reorder(document_content()$topics$topic, document_content()$topics$probability),
+      type = 'bar',
+      orientation = 'h',
+      marker = list(
+        color = document_content()$topics$probability, 
+        colorscale = list(c(0, 'lightblue'), c(1, 'darkblue'))
+      ),
+      hoverinfo = 'x+y+text',
+      text = ~paste('Topic: ', topic, '<br>Probability: ', round(document_content()$topics$probability, 2))
+    ) %>%
+      layout(
+        title = "Topics im Dokument",
+        xaxis = list(title = '', showgrid = TRUE, showline = TRUE),
+        yaxis = list(title = '', showgrid = TRUE, showline = TRUE),
+        plot_bgcolor = 'transparent',
+        margin = list(l = 50, r = 30, t = 50, b = 50),
+        showlegend = FALSE
       )
+    
+    # Klick-Event: Weiterleitung zum Tab „Topic Ansicht“ und Übergabe des Topics
+    p <- p %>%
+      htmlwidgets::onRender("
+        function(el, x) {
+          el.on('plotly_click', function(eventData) {
+            var topic = eventData.points[0].y;  // Hole den Namen des angeklickten Topics
+            Shiny.setInputValue('selected_topic', topic, {priority: 'event'});  // Sende den ausgewählten Topic an Shiny
+            Shiny.setInputValue('goto_topic_view', true, {priority: 'event'});  // Signalisiere, dass der Tab gewechselt werden soll
+          });
+        }
+      ")
+    
+    p
+  })
+  
+  # Reaktion auf das Wechseln des Tabs
+  observeEvent(input$goto_topic_view, {
+    req(input$goto_topic_view)
+    updateTabsetPanel(session, "main_tabs", selected = "Topic Ansicht")
+    updateTextInput(session, "goto_topic_view", value = NULL)
   })
   
   interTopicDF <- reactiveVal(NULL)
@@ -904,7 +935,7 @@ server <- function(input, output, session) {
     topic <- input$plot_click$name
     
     IP <- "127.0.0.1"  # oder deine gewünschte IP
-    url <- sprintf("http://%s:8000/topicmodels/topics/%d?model=lda", IP, topic)
+    url <- sprintf("http://%s:8000/topicmodels/topics/%s?model=lda", IP, topic)
     
     res <- GET(url)
     
@@ -921,7 +952,7 @@ server <- function(input, output, session) {
           geom_bar(stat = "identity", color = "black") +
           scale_fill_gradient(low = "#03a1fc", high = "#1803fc") +
           labs(
-            title = sprintf("Topic %d: Relevanz der Wörter", topic),
+            title = sprintf("Topic %s: Relevanz der Wörter", topic),
             x = "Relevanz",
             y = "Wörter"
           ) +
@@ -937,6 +968,52 @@ server <- function(input, output, session) {
       output$selectedTopic <- renderText({
         paste("Error: Failed to load dependencies for topic number:", topic)
       })
+    }
+  })
+  
+  observeEvent(input$goto_topic_view, {
+    req(input$goto_topic_view)  # Sicherstellen, dass der Event ausgelöst wurde
+    
+    # Wenn der Tab gewechselt wird, gehe sicher, dass der Plot für das gewählte Topic erstellt wird
+    topic <- input$selected_topic  # Der `selected_topic`, der durch den Klick gesetzt wurde
+    
+    # Wenn `selected_topic` gesetzt ist, den Plot für das Topic anzeigen
+    if (!is.null(topic)) {
+      IP <- "127.0.0.1"  # IP-Adresse
+      url <- sprintf("http://%s:8000/topicmodels/topics/%s?model=lda", IP, topic)
+      
+      res <- GET(url)
+      
+      if (status_code(res) == 200) {
+        dependencies_data <- content(res, as = "parsed")
+        dependencies_df <- data.frame(
+          name = names(dependencies_data),
+          wert = unlist(dependencies_data, use.names = FALSE),
+          stringsAsFactors = FALSE
+        )
+        
+        output$selectedTopic <- renderPlot({
+          ggplot(dependencies_df, aes(x = wert, y = reorder(name, wert), fill = wert)) +
+            geom_bar(stat = "identity", color = "black") +
+            scale_fill_gradient(low = "#03a1fc", high = "#1803fc") +
+            labs(
+              title = sprintf("Topic %s: Relevanz der Wörter", topic),
+              x = "Relevanz",
+              y = "Wörter"
+            ) +
+            theme_minimal(base_size = 14) +
+            theme(
+              plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+              axis.text.y = element_text(size = 12),
+              axis.text.x = element_text(size = 12),
+              legend.position = "none"
+            )
+        })
+      } else {
+        output$selectedTopic <- renderText({
+          paste("Error: Failed to load dependencies for topic number:", topic)
+        })
+      }
     }
   })
 }
