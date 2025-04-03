@@ -806,6 +806,40 @@ server <- function(input, output, session) {
   
   output$document_plot <- renderPlotly({
     req(content_id())
+    topics = document_content()$topics$topic
+    
+    IP <- IP
+    top_words_per_topic <- list()
+    
+    for (topic in topics) {
+      url <- sprintf("http://%s:8000/topicmodels/topics/%s?model=lda", IP, topic)
+      
+      res <- httr::GET(url)
+      
+      if (httr::status_code(res) == 200) {
+        data <- httr::content(res, as = "text", encoding = "UTF-8")
+        parsed_data <- fromJSON(data) 
+        
+        word_probs <- unlist(parsed_data)
+        
+        sorted_words <- names(sort(word_probs, decreasing = TRUE))
+        
+        top_words <- head(sorted_words, 3)
+        
+        top_words_per_topic[[topic]] <- top_words
+      } else {
+        warning(sprintf("API-Call für Topic %s fehlgeschlagen!", topic))
+      }
+    }
+    
+    top_words_text <- sapply(document_content()$topics$topic, function(topic) {
+      words <- top_words_per_topic[[topic]]
+      if (!is.null(words)) {
+        paste(words, collapse = ", ")
+      } else {
+        "Keine Daten"
+      }
+    })
     
     p <- plot_ly(
       data = document_content()$topics,
@@ -817,13 +851,13 @@ server <- function(input, output, session) {
         color = document_content()$topics$probability, 
         colorscale = list(c(0, 'lightblue'), c(1, 'darkblue'))
       ),
-      hoverinfo = 'x+y+text',
-      text = ~paste('Topic: ', topic, '<br>Probability: ', round(document_content()$topics$probability, 2))
+      hoverinfo = ~paste('Topic: ', topic, '<br>Probability: ', round(document_content()$topics$probability, 2)),
+      text = ~paste(top_words_text)
     ) %>%
       layout(
         title = "Topics im Dokument",
-        xaxis = list(title = '', showgrid = TRUE, showline = TRUE),
-        yaxis = list(title = '', showgrid = TRUE, showline = TRUE),
+        xaxis = list(title = 'Probability', showgrid = TRUE, showline = TRUE),
+        yaxis = list(title = 'Topic', showgrid = TRUE, showline = TRUE),
         plot_bgcolor = 'transparent',
         margin = list(l = 50, r = 30, t = 50, b = 50),
         showlegend = FALSE
