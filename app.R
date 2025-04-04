@@ -936,9 +936,10 @@ server <- function(input, output, session) {
   
   observeEvent(input$info_button_themenrelevanz, {
     showModal(modalDialog(
-      title = "Information zum Streudiagramm",
-      "Dieses Streudiagramm zeigt die verschiedenen Topics als Punkte in einem zweidimensionalen Raum. 
-      Die Größe der Blasen repräsentiert die relative Bedeutung eines Topics. \n Klicken Sie auf ein Topic, um die relevantesten Wörter anzuzeigen.",
+      title = "Information zu Themenrelevanz in der Literatur",
+      "Geben Sie ein Wort in die Suchleiste ein, um Topics zu finden, in denen dieses Wort vorkommt. 
+      Nach der Auswahl eines Topics zeigt der Plot, wie häufig es zu verschiedenen Zeitpunkten aufgetreten ist. 
+      So lässt sich nachvollziehen, wann ein Thema besonders präsent war und wie sich seine Relevanz über die Zeit entwickelt hat.",
       easyClose = TRUE,
       footer = modalButton("Schließen")
     ))
@@ -946,9 +947,12 @@ server <- function(input, output, session) {
   
   observeEvent(input$info_button_heatmap, {
     showModal(modalDialog(
-      title = "Information zum Streudiagramm",
-      "Dieses Streudiagramm zeigt die verschiedenen Topics als Punkte in einem zweidimensionalen Raum. 
-      Die Größe der Blasen repräsentiert die relative Bedeutung eines Topics. \n Klicken Sie auf ein Topic, um die relevantesten Wörter anzuzeigen.",
+      title = "Information zu der Heatmap",
+      "Diese interaktive Weltkarte zeigt, wo und in welchem Zeitraum über ein bestimmtes Thema geschrieben wurde. 
+      Nach Auswahl eines Topics und eines Zeitraums werden Markierungen an den entsprechenden Orten gesetzt. 
+      Durch Anklicken einer Markierung lassen sich Details zu den veröffentlichten Werken abrufen, einschließlich dem Autor, dem Titel und einer Sentiment-Analyse. 
+      Die Farbgebung gibt dabei Aufschluss über die Stimmung der Texte – von positiv über neutral bis hin zu negativ. 
+      So ermöglicht die Karte eine schnelle Übersicht über die globale Verbreitung und Wahrnehmung eines Themas.",
       easyClose = TRUE,
       footer = modalButton("Schließen")
     ))
@@ -956,9 +960,12 @@ server <- function(input, output, session) {
   
   observeEvent(input$info_button_document, {
     showModal(modalDialog(
-      title = "Information zum Streudiagramm",
-      "Dieses Streudiagramm zeigt die verschiedenen Topics als Punkte in einem zweidimensionalen Raum. 
-      Die Größe der Blasen repräsentiert die relative Bedeutung eines Topics. \n Klicken Sie auf ein Topic, um die relevantesten Wörter anzuzeigen.",
+      title = "Information zu Specific Documents",
+      "Auf dieser Seite können alle verfügbaren literarischen Werke durchsucht und ausgewählt werden. 
+      Nach der Auswahl wird ein Tortendiagramm angezeigt, in dem der Anteil positiver, neutraler und negativer Sprache visualisiert wird. 
+      Darunter wird ein Balkendiagramm dargestellt, in dem die wichtigsten Themen des Werks gezeigt werden. 
+      In den Balken selbst werden die drei häufigsten Wörter pro Thema angezeigt. 
+      So kann ein schneller Einblick in die Stimmung und inhaltlichen Schwerpunkte des jeweiligen Werks gewonnen werden.",
       easyClose = TRUE,
       footer = modalButton("Schließen")
     ))
